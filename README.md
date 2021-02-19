@@ -7,7 +7,6 @@ This is a "dumb simple" Entity-Component framework.
 ### Features
 
 - Lightweight strongly-typed 64-bit unsigned int wrapper as `entity_t`
-- Thread-safe `registry_t` API
 - Type-erased storage of any moveable type `T` as components
 - Supports one instance of any `T` attached to any `entity_t`
 - Performant `attach<T>` / `detach<T>`
@@ -50,7 +49,7 @@ struct foo {
 std::unordered_set<entity_t> spawned;
 decf::registry_t registry;   // Multiple instances can coexist
 
-auto [e0, c0] = registry.spawn<std::string>("ent0");  // Entire public API is thread safe
+auto [e0, c0] = registry.spawn<std::string>("ent0");
 auto& [name] = c0;  // tuple<T&> => structured binding
 name = "ent0";
 spawned.insert(e0); // std::hash<Entity> specialized
