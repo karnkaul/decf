@@ -135,11 +135,15 @@ class registry_t final {
 	///
 	/// \brief Destroy everything
 	///
-	void clear();
+	void clear() noexcept;
 	///
 	/// \brief Obtain entity_t count
 	///
-	std::size_t size() const;
+	std::size_t size() const noexcept;
+	///
+	/// \brief Check if any entities are present
+	///
+	bool empty() const noexcept;
 
   private:
 	using storage_t = std::unordered_map<sign_t, std::unique_ptr<detail::erased_storage_t>>;

@@ -73,15 +73,19 @@ registry_t::info_t const* registry_t::info(entity_t entity) const {
 	return nullptr;
 }
 
-void registry_t::clear() {
+void registry_t::clear() noexcept {
 	m_db.clear();
 }
 
-std::size_t registry_t::size() const {
+std::size_t registry_t::size() const noexcept {
 	if (auto storage = cast<info_t>()) {
 		return storage->size();
 	}
 	return 0;
+}
+
+bool registry_t::empty() const noexcept {
+	return size() == 0;
 }
 
 bool registry_t::contains(sign_t sign, entity_t entity) const {
