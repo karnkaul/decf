@@ -53,6 +53,9 @@ struct spawn_t final {
 	std::tuple<T&...> components;
 
 	constexpr operator entity_t() const noexcept;
+
+	template <typename U>
+	constexpr U& get() const noexcept;
 };
 
 ///
@@ -124,6 +127,11 @@ constexpr bool operator!=(entity_t const& lhs, entity_t const& rhs) noexcept {
 template <typename... T>
 constexpr spawn_t<T...>::operator entity_t() const noexcept {
 	return entity;
+}
+template <typename... T>
+template <typename U>
+constexpr U& spawn_t<T...>::get() const noexcept {
+	return std::get<U&>(components);
 }
 constexpr spawn_t<>::operator entity_t() const noexcept {
 	return entity;
