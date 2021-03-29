@@ -85,10 +85,10 @@ class registry_t final {
 	info_t const* info(entity_t entity) const;
 
 	///
-	/// \brief Add T{args...} to entity if exists
+	/// \brief Add T{args...} to entity (assumed to exist in registry)
 	///
 	template <typename T, typename... Args>
-	T* attach(entity_t entity, Args&&... args);
+	T& attach(entity_t entity, Args&&... args);
 	///
 	/// \brief Remove T if attached to entity_t
 	///
@@ -209,12 +209,9 @@ spawn_t<T...> registry_t::spawn(std::string name) {
 }
 
 template <typename T, typename... Args>
-T* registry_t::attach(entity_t entity, Args&&... args) {
+T& registry_t::attach(entity_t entity, Args&&... args) {
 	static_assert(std::is_constructible_v<T, Args...>, "Cannot construct T with given Args...");
-	if (storage<info_t>().contains(entity)) {
-		return &storage<T>().attach(entity, std::forward<Args>(args)...);
-	}
-	return nullptr;
+	return storage<T>().attach(entity, std::forward<Args>(args)...);
 }
 
 template <typename T>
