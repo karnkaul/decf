@@ -217,9 +217,7 @@ T& registry_t::attach(entity_t entity, Args&&... args) {
 template <typename T>
 bool registry_t::detach(entity_t entity) {
 	static_assert((!std::is_same_v<info_t, std::decay_t<T>>), "Cannot destroy Info!");
-	if (auto info = storage<info_t>().find(entity)) {
-		return storage<T>().detach(entity);
-	}
+	if (auto info = storage<info_t>().find(entity)) { return storage<T>().detach(entity); }
 	return false;
 }
 
@@ -230,17 +228,13 @@ bool registry_t::attached(entity_t entity) const {
 
 template <typename T>
 T const* registry_t::find(entity_t entity) const {
-	if (auto t = cast<T>()) {
-		return t->find(entity);
-	}
+	if (auto t = cast<T>()) { return t->find(entity); }
 	return nullptr;
 }
 
 template <typename T>
 T* registry_t::find(entity_t entity) {
-	if (auto t = cast<T>()) {
-		return t->find(entity);
-	}
+	if (auto t = cast<T>()) { return t->find(entity); }
 	return nullptr;
 }
 
@@ -280,9 +274,7 @@ detail::storage_t<T>& registry_t::storage() {
 template <typename T>
 detail::storage_t<std::decay_t<T>>* registry_t::cast() const {
 	static auto const s = sign<std::decay_t<T>>();
-	if (auto it = m_db.find(s); it != m_db.end()) {
-		return static_cast<detail::storage_t<std::decay_t<T>>*>(it->second.get());
-	}
+	if (auto it = m_db.find(s); it != m_db.end()) { return static_cast<detail::storage_t<std::decay_t<T>>*>(it->second.get()); }
 	return nullptr;
 }
 
@@ -292,9 +284,7 @@ detail::erased_storage_t* registry_t::min_store(Th self, std::array<sign_t, N> c
 	for (auto& s : list) {
 		if (auto it = self->m_db.find(s); it != self->m_db.end()) {
 			auto& c = it->second;
-			if (!ret || ret->size() > c->size()) {
-				ret = c.get();
-			}
+			if (!ret || ret->size() > c->size()) { ret = c.get(); }
 		}
 	}
 	return ret;
@@ -310,9 +300,7 @@ spawn_list_t<T...> registry_t::view_impl(Th self, flags_t mask, flags_t pattern)
 			for (auto& [e, t] : st.map) {
 				auto info_storage = self->template cast<info_t>();
 				auto const flags = info_storage->get(e).flags;
-				if ((flags & mask) == (pattern & mask)) {
-					ret.push_back({e, std::tie(t)});
-				}
+				if ((flags & mask) == (pattern & mask)) { ret.push_back({e, std::tie(t)}); }
 			}
 		}
 	} else {

@@ -43,26 +43,18 @@ struct storage_t final : erased_storage_t {
 	}
 
 	value_type* find(entity_t entity) {
-		if (auto search = map.find(entity); search != map.end()) {
-			return std::addressof(search->second);
-		}
+		if (auto search = map.find(entity); search != map.end()) { return std::addressof(search->second); }
 		return nullptr;
 	}
 
 	value_type const* find(entity_t entity) const {
-		if (auto search = map.find(entity); search != map.end()) {
-			return std::addressof(search->second);
-		}
+		if (auto search = map.find(entity); search != map.end()) { return std::addressof(search->second); }
 		return nullptr;
 	}
 
-	value_type& get(entity_t entity) {
-		return *find(entity);
-	}
+	value_type& get(entity_t entity) { return *find(entity); }
 
-	value_type const& get(entity_t entity) const {
-		return *find(entity);
-	}
+	value_type const& get(entity_t entity) const { return *find(entity); }
 
 	std::size_t clear() noexcept {
 		auto const ret = map.size();
@@ -73,18 +65,12 @@ struct storage_t final : erased_storage_t {
 	std::vector<entity_t> entities() const noexcept override {
 		std::vector<entity_t> ret;
 		ret.reserve(map.size());
-		for (auto const& [e, _] : map) {
-			ret.push_back(e);
-		}
+		for (auto const& [e, _] : map) { ret.push_back(e); }
 		return ret;
 	}
 
-	bool contains(entity_t entity) const noexcept override {
-		return map.find(entity) != map.end();
-	}
+	bool contains(entity_t entity) const noexcept override { return map.find(entity) != map.end(); }
 
-	std::size_t size() const noexcept override {
-		return map.size();
-	}
+	std::size_t size() const noexcept override { return map.size(); }
 };
 } // namespace decf::detail
