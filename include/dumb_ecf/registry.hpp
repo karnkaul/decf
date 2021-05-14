@@ -291,9 +291,9 @@ detail::erased_storage_t* registry_t::min_store(Th self, std::array<sign_t, N> c
 	detail::erased_storage_t* ret = nullptr;
 	for (auto& s : list) {
 		if (auto it = self->m_db.find(s); it != self->m_db.end()) {
-			auto& concept = it->second;
-			if (!ret || ret->size() > concept->size()) {
-				ret = concept.get();
+			auto& c = it->second;
+			if (!ret || ret->size() > c->size()) {
+				ret = c.get();
 			}
 		}
 	}
