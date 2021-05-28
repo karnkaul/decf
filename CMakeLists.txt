@@ -26,13 +26,9 @@ add_library(decf::decf ALIAS decf)
 target_compile_features(decf PUBLIC cxx_std_17)
 target_include_directories(decf PUBLIC include)
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-	target_compile_options(decf PRIVATE -fPIC)
-endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 	target_compile_options(decf PRIVATE /MP)
 endif()
-
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 	target_compile_options(decf PRIVATE -Wextra -Wall -Werror=return-type $<$<NOT:$<CONFIG:Debug>>:-Werror>)
 endif()
