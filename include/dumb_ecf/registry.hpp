@@ -8,15 +8,15 @@
 
 namespace decf {
 ///
-/// \brief Desired flags can be combined with a mask as per-entity_t filters for `view()`
+/// \brief Desired flags can be combined with a mask as per-entity filters for `view()`
 ///
-enum class flag_t { disabled, debug };
-using flags_t = kt::enum_flags<flag_t, 2>;
+enum class flag_t { disabled, debug, eCOUNT_ };
+using flags_t = kt::enum_flags<flag_t>;
 
-class registry_t final {
+class registry final {
   public:
 	///
-	/// \brief entity_t metadata
+	/// \brief entity metadata
 	///
 	struct info_t final {
 		std::string name;
@@ -24,12 +24,12 @@ class registry_t final {
 	};
 
   public:
-	registry_t();
-	registry_t(registry_t&&) noexcept;
-	registry_t(registry_t const&) = delete;
-	registry_t& operator=(registry_t&&) noexcept;
-	registry_t& operator=(registry_t const&) = delete;
-	virtual ~registry_t() noexcept;
+	registry();
+	registry(registry&&) noexcept;
+	registry(registry const&) = delete;
+	registry& operator=(registry&&) noexcept;
+	registry& operator=(registry const&) = delete;
+	virtual ~registry() noexcept;
 
   public:
 	///
@@ -46,80 +46,80 @@ class registry_t final {
 
   public:
 	///
-	/// \brief Make new entity_t with `T(Args&&...)` attached
+	/// \brief Make new entity with `T(Args&&...)` attached
 	///
 	template <typename T, typename... Args>
 	spawn_t<T> spawn(std::string name, Args&&... args);
 	///
-	/// \brief Make new entity_t with `T...` attached
+	/// \brief Make new entity with `T...` attached
 	///
 	template <typename... T>
 	spawn_t<T...> spawn(std::string name);
 	///
-	/// \brief Destroy entity_t
+	/// \brief Destroy entity
 	///
-	bool destroy(entity_t entity);
+	bool destroy(entity e);
 	///
 	/// \brief Toggle Enabled flag
 	///
-	bool enable(entity_t entity, bool enabled);
+	bool enable(entity e, bool enabled);
 	///
 	/// \brief Obtain whether Enabled flag is set
 	///
-	bool enabled(entity_t entity) const;
+	bool enabled(entity e) const;
 	///
-	/// \brief Obtain whether entity_t exists in database
+	/// \brief Obtain whether entity exists in database
 	///
-	bool contains(entity_t entity) const;
+	bool contains(entity e) const;
 	///
-	/// \brief Obtain entity_t name
+	/// \brief Obtain entity name
 	///
-	std::string_view name(entity_t entity) const;
-	///
-	/// \brief Obtain info for entity
-	///
-	info_t* info(entity_t entity);
+	std::string_view name(entity e) const;
 	///
 	/// \brief Obtain info for entity
 	///
-	info_t const* info(entity_t entity) const;
+	info_t* info(entity e);
+	///
+	/// \brief Obtain info for entity
+	///
+	info_t const* info(entity e) const;
 
 	///
 	/// \brief Add T{args...} to entity (assumed to exist in registry)
 	///
 	template <typename T, typename... Args>
-	T& attach(entity_t entity, Args&&... args);
+	T& attach(entity e, Args&&... args);
 	///
-	/// \brief Remove T if attached to entity_t
+	/// \brief Remove T if attached to entity
 	///
 	template <typename T>
-	bool detach(entity_t entity);
+	bool detach(entity e);
 
 	///
 	/// \brief Check if entity has T attached
 	///
 	template <typename T>
-	bool attached(entity_t entity) const;
+	bool attached(entity e) const;
 	///
 	/// \brief Obtain const pointer to T if attached to entity
 	///
 	template <typename T>
-	T const* find(entity_t entity) const;
+	T const* find(entity e) const;
 	///
 	/// \brief Obtain pointer to T if attached to entity
 	///
 	template <typename T>
-	T* find(entity_t entity);
+	T* find(entity e);
 	///
 	/// \brief Obtain reference to T (assumes attached to entity)
 	///
 	template <typename T>
-	T const& get(entity_t entity) const;
+	T const& get(entity e) const;
 	///
 	/// \brief Obtain const reference to T (assumes attached to entity)
 	///
 	template <typename T>
-	T& get(entity_t entity);
+	T& get(entity e);
 
 	///
 	/// \brief Obtain View of T const...
@@ -137,7 +137,7 @@ class registry_t final {
 	///
 	void clear() noexcept;
 	///
-	/// \brief Obtain entity_t count
+	/// \brief Obtain entity count
 	///
 	std::size_t size() const noexcept;
 	///
@@ -157,7 +157,7 @@ class registry_t final {
 	template <typename Th, std::size_t N>
 	static detail::erased_storage_t* min_store(Th self, std::array<sign_t, N> const& list);
 
-	bool contains(sign_t sign, entity_t entity) const;
+	bool contains(sign_t sign, entity e) const;
 
 	template <typename... T, typename Th>
 	static spawn_list_t<T...> view_impl(Th self, flags_t mask, flags_t pattern);
@@ -172,7 +172,7 @@ class registry_t final {
 };
 
 template <typename T>
-sign_t registry_t::sign() {
+sign_t registry::sign() {
 	auto const& t = typeid(std::decay_t<T>);
 	auto const index = std::type_index(t);
 	auto it = s_signs.find(index);
@@ -184,84 +184,84 @@ sign_t registry_t::sign() {
 }
 
 template <typename... T>
-std::array<sign_t, sizeof...(T)> registry_t::signs() {
+std::array<sign_t, sizeof...(T)> registry::signs() {
 	return {sign<T>()...};
 }
 
 template <typename T, typename... Args>
-spawn_t<T> registry_t::spawn(std::string name, Args&&... args) {
+spawn_t<T> registry::spawn(std::string name, Args&&... args) {
 	auto [entity] = spawn(std::move(name));
 	auto& comp = storage<T>().attach(entity, std::forward<Args>(args)...);
 	return {entity, comp};
 }
 
 template <typename... T>
-spawn_t<T...> registry_t::spawn(std::string name) {
+spawn_t<T...> registry::spawn(std::string name) {
 	auto const id = ++m_next_id;
-	entity_t entity{id, m_reg_id};
-	storage<info_t>().attach(entity).name = std::move(name);
+	entity e{id, m_reg_id};
+	storage<info_t>().attach(e).name = std::move(name);
 	if constexpr (sizeof...(T) > 0) {
-		auto comps = std::tie(storage<T>().attach(entity)...);
-		return {entity, std::move(comps)};
+		auto comps = std::tie(storage<T>().attach(e)...);
+		return {e, std::move(comps)};
 	} else {
-		return {entity};
+		return {e};
 	}
 }
 
 template <typename T, typename... Args>
-T& registry_t::attach(entity_t entity, Args&&... args) {
+T& registry::attach(entity e, Args&&... args) {
 	static_assert(std::is_constructible_v<T, Args...>, "Cannot construct T with given Args...");
-	return storage<T>().attach(entity, std::forward<Args>(args)...);
+	return storage<T>().attach(e, std::forward<Args>(args)...);
 }
 
 template <typename T>
-bool registry_t::detach(entity_t entity) {
+bool registry::detach(entity e) {
 	static_assert((!std::is_same_v<info_t, std::decay_t<T>>), "Cannot destroy Info!");
-	if (auto info = storage<info_t>().find(entity)) { return storage<T>().detach(entity); }
+	if (auto info = storage<info_t>().find(e)) { return storage<T>().detach(e); }
 	return false;
 }
 
 template <typename T>
-bool registry_t::attached(entity_t entity) const {
-	return find<T>(entity) != nullptr;
+bool registry::attached(entity e) const {
+	return find<T>(e) != nullptr;
 }
 
 template <typename T>
-T const* registry_t::find(entity_t entity) const {
-	if (auto t = cast<T>()) { return t->find(entity); }
+T const* registry::find(entity e) const {
+	if (auto t = cast<T>()) { return t->find(e); }
 	return nullptr;
 }
 
 template <typename T>
-T* registry_t::find(entity_t entity) {
-	if (auto t = cast<T>()) { return t->find(entity); }
+T* registry::find(entity e) {
+	if (auto t = cast<T>()) { return t->find(e); }
 	return nullptr;
 }
 
 template <typename T>
-T const& registry_t::get(entity_t entity) const {
-	return *find<T>(entity);
+T const& registry::get(entity e) const {
+	return *find<T>(e);
 }
 
 template <typename T>
-T& registry_t::get(entity_t entity) {
-	return *find<T>(entity);
+T& registry::get(entity e) {
+	return *find<T>(e);
 }
 
 template <typename... T>
-spawn_list_t<T const...> registry_t::view(flags_t mask, flags_t pattern) const {
+spawn_list_t<T const...> registry::view(flags_t mask, flags_t pattern) const {
 	static_assert(sizeof...(T) > 0, "Must pass at least one T!");
 	return view_impl<T const...>(this, mask, pattern);
 }
 
 template <typename... T>
-spawn_list_t<T...> registry_t::view(flags_t mask, flags_t pattern) {
+spawn_list_t<T...> registry::view(flags_t mask, flags_t pattern) {
 	static_assert(sizeof...(T) > 0, "Must pass at least one T!");
 	return view_impl<T...>(this, mask, pattern);
 }
 
 template <typename T>
-detail::storage_t<T>& registry_t::storage() {
+detail::storage_t<T>& registry::storage() {
 	static auto const s = sign<T>();
 	auto& t = m_db[s];
 	if (!t) {
@@ -272,14 +272,14 @@ detail::storage_t<T>& registry_t::storage() {
 }
 
 template <typename T>
-detail::storage_t<std::decay_t<T>>* registry_t::cast() const {
+detail::storage_t<std::decay_t<T>>* registry::cast() const {
 	static auto const s = sign<std::decay_t<T>>();
 	if (auto it = m_db.find(s); it != m_db.end()) { return static_cast<detail::storage_t<std::decay_t<T>>*>(it->second.get()); }
 	return nullptr;
 }
 
 template <typename Th, std::size_t N>
-detail::erased_storage_t* registry_t::min_store(Th self, std::array<sign_t, N> const& list) {
+detail::erased_storage_t* registry::min_store(Th self, std::array<sign_t, N> const& list) {
 	detail::erased_storage_t* ret = nullptr;
 	for (auto& s : list) {
 		if (auto it = self->m_db.find(s); it != self->m_db.end()) {
@@ -291,7 +291,7 @@ detail::erased_storage_t* registry_t::min_store(Th self, std::array<sign_t, N> c
 }
 
 template <typename... T, typename Th>
-spawn_list_t<T...> registry_t::view_impl(Th self, flags_t mask, flags_t pattern) {
+spawn_list_t<T...> registry::view_impl(Th self, flags_t mask, flags_t pattern) {
 	spawn_list_t<T...> ret;
 	if constexpr (sizeof...(T) == 1) {
 		static auto const s = sign<T...>();
