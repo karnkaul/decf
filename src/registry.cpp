@@ -25,7 +25,7 @@ bool registry::destroy(entity entity) {
 
 bool registry::enable(entity entity, bool enabled) {
 	if (auto info = storage<info_t>().find(entity)) {
-		info->flags[flag_t::disabled] = !enabled;
+		info->flags.assign(flag_t::disabled, !enabled);
 		return true;
 	}
 	return false;

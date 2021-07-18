@@ -1,6 +1,8 @@
 #pragma once
+#include <algorithm>
 #include <memory>
 #include <optional>
+#include <string>
 #include <typeindex>
 #include <typeinfo>
 #include <dumb_ecf/detail/storage.hpp>
@@ -10,8 +12,8 @@ namespace decf {
 ///
 /// \brief Desired flags can be combined with a mask as per-entity filters for `view()`
 ///
-enum class flag_t { disabled, debug, eCOUNT_ };
-using flags_t = kt::enum_flags<flag_t>;
+enum class flag_t { disabled, debug };
+using flags_t = kt::enum_flags<flag_t, std::uint8_t>;
 
 class registry final {
   public:
