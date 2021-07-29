@@ -3,28 +3,26 @@ set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "")
 
 project(decf)
 
-if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
-	find_package(Git QUIET)
-		if(GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
-		message(STATUS "Updating git submodules...")
-		execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
-			WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-			RESULT_VARIABLE UPDATE_SUBMODULES_RESULT
-		)
-		if(NOT UPDATE_SUBMODULES_RESULT EQUAL "0")
-			message(FATAL_ERROR "git submodule update failed!")
-		endif()
-	endif()
-endif()
+# ktl
+include(FetchContent)
+set(FETCHCONTENT_QUIET OFF)
+FetchContent_Declare(
+	ktl
+	GIT_REPOSITORY https://github.com/karnkaul/ktl
+	GIT_TAG 4247b26
+	GIT_SHALLOW ON
+)
+FetchContent_MakeAvailable(ktl)
 
-file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.?pp")
-file(GLOB_RECURSE INCLUDES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/include/*.?pp")
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.[hc]pp")
+file(GLOB_RECURSE INCLUDES CONFIGURE_DEPENDS "include/*.hpp")
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${INCLUDES} ${SOURCES})
 
 add_library(decf ${INCLUDES} ${SOURCES})
 add_library(decf::decf ALIAS decf)
 target_compile_features(decf PUBLIC cxx_std_17)
 target_include_directories(decf PUBLIC include)
+target_link_libraries(decf PUBLIC ktl::ktl)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 	target_compile_options(decf PRIVATE /MP)

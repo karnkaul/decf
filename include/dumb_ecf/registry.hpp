@@ -6,14 +6,14 @@
 #include <typeindex>
 #include <typeinfo>
 #include <dumb_ecf/detail/storage.hpp>
-#include <kt/enum_flags/enum_flags.hpp>
+#include <ktl/enum_flags/enum_flags.hpp>
 
 namespace decf {
 ///
 /// \brief Desired flags can be combined with a mask as per-entity filters for `view()`
 ///
 enum class flag_t { disabled, debug };
-using flags_t = kt::enum_flags<flag_t, std::uint8_t>;
+using flags_t = ktl::enum_flags<flag_t, std::uint8_t>;
 
 class registry final {
   public:

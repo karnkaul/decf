@@ -1,3 +1,0 @@
-[submodule "include/kt/enum_flags"]
-	path = include/kt/enum_flags
-	url = https://github.com/karnkaul/enum-flags.git
