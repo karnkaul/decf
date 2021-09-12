@@ -25,15 +25,14 @@ class registry final {
 		flags_t flags;
 	};
 
-  public:
-	registry();
-	registry(registry&&) noexcept;
+	registry() noexcept : m_reg_id(++s_next_reg_id) {}
+	registry(registry&& rhs) noexcept { exchg(*this, rhs); }
+	registry& operator=(registry rhs) noexcept { return (exchg(*this, rhs), *this); }
 	registry(registry const&) = delete;
-	registry& operator=(registry&&) noexcept;
 	registry& operator=(registry const&) = delete;
-	virtual ~registry() noexcept;
+	~registry() noexcept { clear(); }
+	static void exchg(registry& lhs, registry& rhs) noexcept;
 
-  public:
 	///
 	/// \brief Obtain signature of `T`
 	///
@@ -60,31 +59,31 @@ class registry final {
 	///
 	/// \brief Destroy entity
 	///
-	bool destroy(entity e);
+	bool destroy(entity e) noexcept;
 	///
 	/// \brief Toggle Enabled flag
 	///
-	bool enable(entity e, bool enabled);
+	bool enable(entity e, bool enabled) noexcept;
 	///
 	/// \brief Obtain whether Enabled flag is set
 	///
-	bool enabled(entity e) const;
+	bool enabled(entity e) const noexcept;
 	///
 	/// \brief Obtain whether entity exists in database
 	///
-	bool contains(entity e) const;
+	bool contains(entity e) const noexcept;
 	///
 	/// \brief Obtain entity name
 	///
-	std::string_view name(entity e) const;
+	std::string_view name(entity e) const noexcept;
 	///
 	/// \brief Obtain info for entity
 	///
-	info_t* info(entity e);
+	info_t* info(entity e) noexcept;
 	///
 	/// \brief Obtain info for entity
 	///
-	info_t const* info(entity e) const;
+	info_t const* info(entity e) const noexcept;
 
 	///
 	/// \brief Add T{args...} to entity (assumed to exist in registry)
@@ -95,23 +94,23 @@ class registry final {
 	/// \brief Remove T if attached to entity
 	///
 	template <typename T>
-	bool detach(entity e);
+	bool detach(entity e) noexcept;
 
 	///
 	/// \brief Check if entity has T attached
 	///
 	template <typename T>
-	bool attached(entity e) const;
+	bool attached(entity e) const noexcept;
 	///
 	/// \brief Obtain const pointer to T if attached to entity
 	///
 	template <typename T>
-	T const* find(entity e) const;
+	T const* find(entity e) const noexcept;
 	///
 	/// \brief Obtain pointer to T if attached to entity
 	///
 	template <typename T>
-	T* find(entity e);
+	T* find(entity e) noexcept;
 	///
 	/// \brief Obtain reference to T (assumes attached to entity)
 	///
@@ -154,12 +153,12 @@ class registry final {
 	detail::storage_t<T>& storage();
 
 	template <typename T>
-	detail::storage_t<std::decay_t<T>>* cast() const;
+	detail::storage_t<std::decay_t<T>>* cast() const noexcept;
 
 	template <typename Th, std::size_t N>
-	static detail::erased_storage_t* min_store(Th self, std::array<sign_t, N> const& list);
+	static detail::erased_storage_t* min_store(Th self, std::array<sign_t, N> const& list) noexcept;
 
-	bool contains(sign_t sign, entity e) const;
+	bool contains(sign_t sign, entity e) const noexcept;
 
 	template <typename... T, typename Th>
 	static spawn_list_t<T...> view_impl(Th self, flags_t mask, flags_t pattern);
@@ -217,25 +216,25 @@ T& registry::attach(entity e, Args&&... args) {
 }
 
 template <typename T>
-bool registry::detach(entity e) {
+bool registry::detach(entity e) noexcept {
 	static_assert((!std::is_same_v<info_t, std::decay_t<T>>), "Cannot destroy Info!");
 	if (auto info = storage<info_t>().find(e)) { return storage<T>().detach(e); }
 	return false;
 }
 
 template <typename T>
-bool registry::attached(entity e) const {
+bool registry::attached(entity e) const noexcept {
 	return find<T>(e) != nullptr;
 }
 
 template <typename T>
-T const* registry::find(entity e) const {
+T const* registry::find(entity e) const noexcept {
 	if (auto t = cast<T>()) { return t->find(e); }
 	return nullptr;
 }
 
 template <typename T>
-T* registry::find(entity e) {
+T* registry::find(entity e) noexcept {
 	if (auto t = cast<T>()) { return t->find(e); }
 	return nullptr;
 }
@@ -274,14 +273,14 @@ detail::storage_t<T>& registry::storage() {
 }
 
 template <typename T>
-detail::storage_t<std::decay_t<T>>* registry::cast() const {
+detail::storage_t<std::decay_t<T>>* registry::cast() const noexcept {
 	static auto const s = sign<std::decay_t<T>>();
 	if (auto it = m_db.find(s); it != m_db.end()) { return static_cast<detail::storage_t<std::decay_t<T>>*>(it->second.get()); }
 	return nullptr;
 }
 
 template <typename Th, std::size_t N>
-detail::erased_storage_t* registry::min_store(Th self, std::array<sign_t, N> const& list) {
+detail::erased_storage_t* registry::min_store(Th self, std::array<sign_t, N> const& list) noexcept {
 	detail::erased_storage_t* ret = nullptr;
 	for (auto& s : list) {
 		if (auto it = self->m_db.find(s); it != self->m_db.end()) {

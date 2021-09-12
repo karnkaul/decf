@@ -9,7 +9,7 @@ struct erased_storage_t {
 
 	virtual ~erased_storage_t() = default;
 
-	virtual bool detach(entity e) = 0;
+	virtual bool detach(entity e) noexcept = 0;
 	virtual std::vector<entity> entities() const noexcept = 0;
 	virtual bool contains(entity) const noexcept = 0;
 	virtual std::size_t size() const noexcept = 0;
@@ -24,17 +24,17 @@ struct storage_t final : erased_storage_t {
 	std::unordered_map<entity, T, std::hash<entity>> map;
 
 	template <typename... Args>
-	value_type& attach(entity e, Args&&... args) {
+	T& attach(entity e, Args&&... args) {
 		if (auto search = map.find(e); search != map.end()) {
-			value_type& ret = search->second;
-			ret = value_type{std::forward<Args>(args)...};
+			T& ret = search->second;
+			ret = T{std::forward<Args>(args)...};
 			return ret;
 		}
-		auto [ret, bResult] = map.emplace(e, T{std::forward<Args>(args)...});
+		auto [ret, _] = map.emplace(e, T{std::forward<Args>(args)...});
 		return ret->second;
 	}
 
-	bool detach(entity e) override {
+	bool detach(entity e) noexcept override {
 		if (auto search = map.find(e); search != map.end()) {
 			map.erase(search);
 			return true;
@@ -42,19 +42,19 @@ struct storage_t final : erased_storage_t {
 		return false;
 	}
 
-	value_type* find(entity e) {
+	T* find(entity e) noexcept {
 		if (auto search = map.find(e); search != map.end()) { return std::addressof(search->second); }
 		return nullptr;
 	}
 
-	value_type const* find(entity e) const {
+	T const* find(entity e) const noexcept {
 		if (auto search = map.find(e); search != map.end()) { return std::addressof(search->second); }
 		return nullptr;
 	}
 
-	value_type& get(entity e) { return *find(e); }
+	T& get(entity e) { return *find(e); }
 
-	value_type const& get(entity e) const { return *find(e); }
+	T const& get(entity e) const { return *find(e); }
 
 	std::size_t clear() noexcept {
 		auto const ret = map.size();
